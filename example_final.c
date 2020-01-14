@@ -55,13 +55,13 @@ int main()
             readDataMap(g);
             break;
         case 2:
-            // Case2(g);
+            Case2(g);
             break;
         case 3:
-            // Case3(g);
+            Case3(g);
             break;
         case 4:
-            // Case4(g);
+            Case4(g);
             break;
         case 5:
             // Case5(g);
@@ -219,15 +219,59 @@ int trim(char *s)
 
     return d;
 }
+double shortesPath(Graph graph, int s, int t, int *path, int *length)
+{
+    double distance[1000], min;
+    int previous[1000], u, visited[1000], output[100], number;
+    for (int i = 0; i < 1000; i++)
+    {
+        distance[i] = INFINITIVE_VALUE;
+        visited[i] = 0;
+        previous[i] = 0;
+    }
+    distance[s] = 0;
+    previous[s] = s;
+    visited[s] = 1;
+    Dllist ptr, queue, node;
+    queue = new_dllist();
+    dll_append(queue, new_jval_i(s));
+    while (!dll_empty(queue))
+    {
+        node = dll_first(queue);
+        int u = jval_i(node->val);
+        dll_delete_node(node);
+        number = outdegree(graph, u, output);
+        for (int i = 0; i < number; i++)
+        {
+            if (visited[output[i]] == 0)
+            {
+                visited[output[i]] = 1;
+                dll_append(queue, new_jval_i(output[i]));
+            }
+            if ((getEdgeValue(graph, u, output[i]) + distance[u]) < distance[output[i]])
+            {
+                distance[output[i]] = getEdgeValue(graph, u, output[i]) + distance[u];
+                previous[output[i]] = u;
+            }
+        }
+    }
+    path[0] = t;
+    *length = 1;
+    int cur = t;
+    while (previous[cur] != s)
+    {
+        path[*length] = previous[cur];
+        *length = *length + 1;
+        cur = previous[cur];
+    }
+
+    path[*length] = s;
+    return distance[t];
+}
 void readDataMap(Graph graph)
 {
     int n_vertex, n_edge;
-    char *temp, *token, *weight, *vertex1, *vertex2;
-    temp = (char *)malloc(100 * sizeof(char));
-    token = (char *)malloc(100 * sizeof(char));
-    vertex1 = (char *)malloc(100 * sizeof(char));
-    vertex2 = (char *)malloc(100 * sizeof(char));
-    weight = (char *)malloc(100 * sizeof(char));
+    int castle1, castle2, time;
     FILE *f;
     f = fopen("dothi.txt", "r");
     if (f == NULL)
@@ -235,41 +279,24 @@ void readDataMap(Graph graph)
         printf(" Error\n");
         exit(1);
     }
-    fgets(temp, 100, f);
-    temp[strlen(temp) - 1] = '\0';
-    token = strtok(temp, " ");
-    n_vertex = atoi(token);
-    token = strtok(NULL, " ");
-    n_edge = atoi(token);
-    printf("%d - %d\n", n_vertex, n_edge);
-    while (fgets(temp, 20, f) != NULL)
+    fscanf(f, "%d\t%d\n", &n_vertex, &n_edge);
+    while (!feof(f))
     {
-        temp[strlen(temp) - 1] = '\0';
-        token = strtok(temp, " ");
-        trim(token);
-        strcpy(vertex1, token);
-        addVertex(graph, atoi(vertex1), vertex1);
-        printf("dinh 1: %s\n",getVertex(graph,atoi(vertex1)));
-        token = strtok(NULL, " ");
-        trim(token);
-        strcpy(vertex2, token);
-        addVertex(graph, atoi(vertex2), token);
-        printf("dinh 2: %s\n",getVertex(graph,atoi(vertex2)));
-        token = strtok(NULL, " ");
-        trim(token);
-        printf("weight: %d\n",atoi(token));
-        addEdge(graph, atoi(vertex1),atoi(vertex2), atoi(token));
-        addEdge(graph, atoi(vertex2),atoi(vertex1), atoi(token));
-        printf(("hau\n"));
+        fscanf(f, "%d\t%d\t%d\n", &castle1, &castle2, &time);
+        addVertex(graph, castle1, "");
+        addVertex(graph, castle2, "");
+        addEdge(graph, castle1, castle2, time);
+        addEdge(graph, castle2, castle1, time);
     }
+
     JRB temp_jrb = make_jrb();
     JRB temp_jrb1 = make_jrb();
-    printf("   |");
+    printf("    ");
     jrb_traverse(temp_jrb, graph.vertices)
     {
         printf("%d   ", jval_i(temp_jrb->key));
     }
-    printf("\n");
+    printf("\n\n");
     jrb_traverse(temp_jrb1, graph.vertices)
     {
         printf("%-3d|", jval_s(temp_jrb1->key));
@@ -286,9 +313,95 @@ void readDataMap(Graph graph)
         }
         printf("\n\n");
     }
-    jrb_traverse(temp_jrb,graph.vertices)
-    {
-        printf("%s/",getVertex(graph,jval_i(temp_jrb->key)));
-    }
     fclose(f);
+}
+void Case2(Graph graph)
+{
+    JRB temp = make_jrb();
+    int *output = (int *)malloc(100 * sizeof(int));
+    printf("Danh sach lien cua cua tat ca cac Thanh\n");
+    jrb_traverse(temp, graph.vertices)
+    {
+        printf("\n-   Castle %d: ", jval_i(temp->key));
+        int total = outdegree(graph, jval_i(temp->key), output);
+        for (int i = 0; i < total; i++)
+        {
+            printf("%d ", output[i]);
+        }
+    }
+}
+void Case3(Graph graph)
+{
+    int check = 0, count = 0, max = 0, castle[100];
+    JRB temp = make_jrb();
+    int *output = (int *)malloc(100 * sizeof(int));
+    printf("Danh sach cac thanh co the den no truc tiep tu mot thanh khac bang cach di bo\n");
+    jrb_traverse(temp, graph.vertices)
+    {
+        check = 0;
+        int total = outdegree(graph, jval_i(temp->key), output);
+        for (int i = 0; i < total; i++)
+        {
+            if (getEdgeValue(graph, jval_i(temp->key), output[i]) < 50)
+            {
+                check = 1;
+                break;
+            }
+        }
+        if (check == 0)
+        {
+            printf("- Castle: %d\n", jval_i(temp->key));
+        }
+    }
+    jrb_traverse(temp, graph.vertices)
+    {
+        int total = outdegree(graph, jval_i(temp->key), output);
+        // printf("max:%d/total:%d/key:%d\n",max,total,jval_i(temp->key));
+        if (total == max)
+        {
+            castle[count++] = jval_i(temp->key);
+        }
+        else if (total > max)
+        {
+            max = total;
+            count = 0;
+            castle[count++] = jval_i(temp->key);
+        }
+    }
+    printf("\nCac thanh co nhieu duong noi truc tiep nhat:\n");
+    for (int i = 0; i < count; i++)
+    {
+        printf("- Castle: %d\n", castle[i]);
+    }
+}
+void Case4(Graph graph)
+{
+    int start, stop, output[100], lenght;
+    printf("Nhap thanh tri xuat phat: ");
+    fflush(stdin);
+    scanf("%d", &start);
+    printf("Nhap thanh tri dich: ");
+    fflush(stdin);
+    scanf("%d", &stop);
+    double distant = shortesPath(graph, start, stop, output, &lenght);
+    if (lenght < 0)
+    {
+        printf("ROUTE NOT FOUND\n");
+    }
+    else
+    {
+
+        printf("Duong di ngan nhat tu Castle: %d -> Castle: %d\n", start, stop);
+        printf("        - Do dai: %.0lf\n", distant);
+        printf("        ");
+        for (int i = 0; i <= lenght; i++)
+        {
+            printf("- ");
+            printf("%d ", output[lenght - i]);
+        }
+    }
+}
+void Case5(Graph graph)
+{
+    
 }
