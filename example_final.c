@@ -383,21 +383,29 @@ void Case4(Graph graph)
     printf("Nhap thanh tri dich: ");
     fflush(stdin);
     scanf("%d", &stop);
-    double distant = shortesPath(graph, start, stop, output, &lenght);
-    if (lenght < 0)
-    {
+    if (getVertex(graph, start) == NULL)
         printf("ROUTE NOT FOUND\n");
-    }
+    else if (getVertex(graph, stop) == NULL)
+        printf("ROUTE NOT FOUND\n");
     else
     {
 
-        printf("Duong di ngan nhat tu Castle: %d -> Castle: %d\n", start, stop);
-        printf("        - Do dai: %.0lf\n", distant);
-        printf("        ");
-        for (int i = 0; i <= lenght; i++)
+        double distant = shortesPath(graph, start, stop, output, &lenght);
+        if (lenght < 0)
         {
-            printf("- ");
-            printf("%d ", output[lenght - i]);
+            printf("ROUTE NOT FOUND\n");
+        }
+        else
+        {
+
+            printf("Duong di ngan nhat tu Castle: %d -> Castle: %d\n", start, stop);
+            printf("        - Do dai: %.0lf\n", distant);
+            printf("        ");
+            for (int i = 0; i <= lenght; i++)
+            {
+                printf("- ");
+                printf("%d ", output[lenght - i]);
+            }
         }
     }
 }
